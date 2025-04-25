@@ -1,0 +1,381 @@
+<!-- 公共样式和组件，用于在所有页面中引用 -->
+<style>
+    /* 隐藏滚动条但保持可滚动 */
+    ::-webkit-scrollbar {
+        display: none;
+    }
+    * {
+        -ms-overflow-style: none;  /* IE and Edge */
+        scrollbar-width: none;  /* Firefox */
+    }
+  /* iOS状态栏样式 */
+  .ios-status-bar {
+    height: 44px;
+    background-color: #f8f8f8;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    font-size: 12px;
+    color: #333;
+    position: relative;
+  }
+  
+  /* 应用通用样式 */
+  .app-container {
+    font-family: 'PingFang SC', 'Helvetica Neue', Arial, sans-serif;
+    height: 100vh;
+    background-color: #f8f9fa;
+    overflow-y: auto;
+    position: relative;
+  }
+  
+  /* 底部导航栏 */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background-color: white;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+    z-index: 100;
+  }
+  
+  .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 12px;
+    color: #666;
+  }
+  
+  .nav-item.active {
+    color: #4f46e5;
+  }
+  
+  .nav-item i {
+    font-size: 22px;
+    margin-bottom: 4px;
+  }
+
+  /* 主内容区域 */
+  .main-content {
+    padding-bottom: 70px; /* 为底部导航留出空间 */
+    min-height: calc(100vh - 44px - 60px);
+  }
+
+  /* 学科卡片样式 */
+  .subject-card {
+    border-radius: 16px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+    transition: all 0.3s;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  }
+
+  .subject-card:hover, .subject-card:active {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+  }
+
+  /* 科目特定颜色 */
+  .chinese {
+    background-color: #ffeded;
+    border-left: 5px solid #f87171;
+  }
+
+  .math {
+    background-color: #edf7ff;
+    border-left: 5px solid #3b82f6;
+  }
+
+  .english {
+    background-color: #edfff5;
+    border-left: 5px solid #10b981;
+  }
+
+  .programming {
+    background-color: #f3eeff;
+    border-left: 5px solid #8b5cf6;
+  }
+
+  /* 通用按钮样式 */
+  .primary-btn {
+    background-color: #4f46e5;
+    color: white;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-weight: bold;
+    text-align: center;
+    transition: all 0.3s;
+  }
+
+  .primary-btn:hover, .primary-btn:active {
+    background-color: #4338ca;
+    transform: translateY(-1px);
+  }
+
+  .secondary-btn {
+    background-color: #f3f4f6;
+    color: #4b5563;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-weight: bold;
+    text-align: center;
+    transition: all 0.3s;
+  }
+
+  .secondary-btn:hover, .secondary-btn:active {
+    background-color: #e5e7eb;
+    transform: translateY(-1px);
+  }
+
+  /* 表单控件样式 */
+  .form-control {
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 16px;
+    width: 100%;
+    /* margin-bottom: 16px; */
+  }
+
+  .form-control:focus {
+    outline: none;
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+  }
+  
+  /* 带图标的输入框容器 */
+  .input-icon-container {
+    position: relative;
+  }
+  
+  /* 输入框图标 */
+  .input-icon {
+    position: absolute;
+    top: 50%;
+    left: 12px;
+    transform: translateY(-50%);
+    color: #9ca3af;
+    pointer-events: none;
+    z-index: 10;
+  }
+  
+  /* 带图标的输入框 - 为图标预留空间 */
+  .input-with-icon {
+    padding-left: 40px !important;
+  }
+
+  /* 学习进度条 */
+  .progress-container {
+    width: 100%;
+    height: 8px;
+    background-color: #e5e7eb;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .progress-bar {
+    height: 100%;
+    border-radius: 4px;
+    background-color: #4f46e5;
+  }
+
+  /* 适合儿童的奖励和动画元素 */
+  .reward-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    background-color: #fef3c7;
+    color: #92400e;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    margin-right: 8px;
+  }
+
+  /* 卡通角色 */
+  .mascot {
+    position: absolute;
+    bottom: 70px;
+    right: 20px;
+    width: 80px;
+    height: 80px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    z-index: 50;
+  }
+  
+  /* 卡通动物头像 */
+  .animal-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 24px;
+    margin-right: 12px;
+    object-fit: cover;
+  }
+  
+  /* 题目选项样式 */
+  .quiz-option {
+    background-color: white;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+  }
+  
+  .quiz-option:hover, .quiz-option:active {
+    border-color: #4f46e5;
+    background-color: #f5f3ff;
+  }
+  
+  .quiz-option.selected {
+    border-color: #4f46e5;
+    background-color: #ebe9ff;
+  }
+  
+  .quiz-option.correct {
+    border-color: #10b981;
+    background-color: #ecfdf5;
+  }
+  
+  .quiz-option.incorrect {
+    border-color: #ef4444;
+    background-color: #fef2f2;
+  }
+
+  /* 编程积木样式 */
+  .code-block {
+    background-color: #4f46e5;
+    color: white;
+    border-radius: 8px;
+    padding: 8px 16px;
+    margin: 8px 0;
+    display: inline-block;
+    font-family: monospace;
+    cursor: move;
+  }
+
+  .code-block.condition {
+    background-color: #f59e0b;
+  }
+
+  .code-block.loop {
+    background-color: #10b981;
+  }
+
+  .code-block.action {
+    background-color: #3b82f6;
+  }
+
+  .code-workspace {
+    min-height: 200px;
+    background-color: #f8f9fa;
+    border: 2px dashed #e5e7eb;
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: 16px;
+  }
+</style>
+
+<!-- iOS状态栏模板 -->
+<template id="ios-status-bar">
+  <div class="ios-status-bar">
+    <div>9:41</div>
+    <div class="flex">
+      <i class="fas fa-signal mr-1"></i>
+      <i class="fas fa-wifi mr-1"></i>
+      <i class="fas fa-battery-full"></i>
+    </div>
+  </div>
+</template>
+
+<!-- 底部导航栏模板 - 学生端 -->
+<template id="student-bottom-nav">
+  <div class="bottom-nav">
+    <div class="nav-item active">
+      <i class="fas fa-home"></i>
+      <span>首页</span>
+    </div>
+    <div class="nav-item">
+      <i class="fas fa-book-open"></i>
+      <span>学习</span>
+    </div>
+    <div class="nav-item">
+      <i class="fas fa-exclamation-circle"></i>
+      <span>错题本</span>
+    </div>
+    <div class="nav-item">
+      <i class="fas fa-user"></i>
+      <span>我的</span>
+    </div>
+  </div>
+</template>
+
+<!-- 底部导航栏模板 - 教师端 -->
+<template id="teacher-bottom-nav">
+  <div class="bottom-nav">
+    <div class="nav-item active">
+      <i class="fas fa-home"></i>
+      <span>首页</span>
+    </div>
+    <div class="nav-item">
+      <i class="fas fa-tasks"></i>
+      <span>作业</span>
+    </div>
+    <div class="nav-item">
+      <i class="fas fa-chart-pie"></i>
+      <span>分析</span>
+    </div>
+    <div class="nav-item">
+      <i class="fas fa-user"></i>
+      <span>我的</span>
+    </div>
+  </div>
+</template>
+
+<!-- 引入Chart.js库 -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- 公共JavaScript函数 -->
+<script>
+  // 加载iOS状态栏
+  function loadStatusBar(container) {
+    const statusBarTemplate = document.getElementById('ios-status-bar');
+    container.appendChild(statusBarTemplate.content.cloneNode(true));
+  }
+  
+  // 加载底部导航栏
+  function loadBottomNav(container, type) {
+    const template = document.getElementById(type + '-bottom-nav');
+    container.appendChild(template.content.cloneNode(true));
+  }
+  
+  // 创建进度条
+  function createProgressBar(container, percentage) {
+    const progress = container.querySelector('.progress-bar');
+    if (progress) {
+      progress.style.width = percentage + '%';
+    }
+  }
+
+  // 选择题选项交互
+  function setupQuizOptions() {
+    const options = document.querySelectorAll('.quiz-option');
+    options.forEach(option => {
+      option.addEventListener('click', function() {
+        options.forEach(o => o.classList.remove('selected'));
+        this.classList.add('selected');
+      });
+    });
+  }
+</script> 
