@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>小学生智能学习助手 - 作业列表</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- 引入公共样式 -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      fetch('../common.html')
+        .then(response => response.text())
+        .then(html => {
+          // 解析HTML
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(html, 'text/html');
+          
+          // 提取样式
+          const styles = doc.querySelector('style');
+          if (styles) {
+            document.head.appendChild(styles.cloneNode(true));
+          }
+          
+          // 提取模板
+          const templates = doc.querySelectorAll('template');
+          templates.forEach(template => {
+            document.body.appendChild(template.cloneNode(true));
+          });
+          
+          // 提取脚本
+          const scripts = doc.querySelector('script');
+          if (scripts) {
+            const newScript = document.createElement('script');
+            newScript.textContent = scripts.textContent;
+            document.body.appendChild(newScript);
+          }
+          
+          // 初始化组件
+          setTimeout(() => {
+            // const statusBarContainer = document.getElementById('status-bar-container');
+            const navContainer = document.getElementById('nav-container');
+            // if (statusBarContainer && window.loadStatusBar) {
+            //   loadStatusBar(statusBarContainer);
+            // }
+            if (navContainer && window.loadBottomNav) {
+              loadBottomNav(navContainer, 'teacher');
+            }
+          }, 500);
+        })
+        .catch(error => {
+          console.error('加载公共组件失败:', error);
+        });
+    });
+  </script>
+  <style>
+    .filter-pill {
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+    }
+    
+    .assignment-item {
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      transition: all 0.2s;
+    }
+    
+    .assignment-item:hover {
+      border-color: #3b82f6;
+      box-shadow: 0 2px 6px rgba(59, 130, 246, 0.1);
+    }
+    
+    .status-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+    }
+    
+    .status-active {
+      background-color: #d1fae5;
+      color: #059669;
+    }
+    
+    .status-expired {
+      background-color: #e5e7eb;
+      color: #6b7280;
+    }
+    
+    .status-draft {
+      background-color: #ffedd5;
+      color: #d97706;
+    }
+    
+    .text-ellipsis {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    /* 添加响应式布局适配 */
+    @media (max-width: 640px) {
+      .assignment-item {
+        padding: 12px !important;
+      }
+      
+      .assignment-meta {
+        flex-direction: column;
+        align-items: flex-start !important;
+      }
+      
+      .assignment-stats {
+        margin-top: 8px;
+        width: 100%;
+        overflow-x: auto;
+        padding-bottom: 4px;
+      }
+      
+      .assignment-actions {
+        margin-top: 10px;
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+      
+      .assignment-actions button {
+        width: 100%;
+        justify-content: center;
+      }
+      
+      .assignment-title-area {
+        max-width: 80%;
+      }
+      
+      .assignment-subject-icon {
+        min-width: 36px;
+        min-height: 36px;
+        width: 36px;
+        height: 36px;
+      }
+      
+      /* 筛选器的响应式样式 */
+      .filter-container {
+        flex-direction: column;
+      }
+      
+      .filter-pills-container {
+        width: 100%;
+        margin-bottom: 10px;
+        overflow-x: auto;
+        padding-bottom: 6px;
+        -webkit-overflow-scrolling: touch;
+      }
+      
+      .filter-action-btn {
+        width: 100%;
+      }
+      
+      /* 优化分页在手机上的显示 */
+      .pagination-container button {
+        width: 36px;
+        height: 36px;
+        margin-right: 6px;
+      }
+      
+      /* 页面标题区域响应式 */
+      .page-title {
+        font-size: 1.5rem;
+      }
+      
+      .create-btn {
+        font-size: 0.75rem;
+        padding: 0.5rem 0.75rem;
+        white-space: nowrap;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="common-components"></div>
+
+  <div class="app-container">
+    <!-- iOS状态栏 将由JS加载 -->
+    <div id="status-bar-container"></div>
+
+    <div class="main-content p-4">
+      <!-- 页面标题 -->
+      <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold page-title">作业列表</h1>
+        <a href="assignment_create.html" class="bg-blue-600 text-white py-2 px-4 rounded-lg text-sm flex items-center create-btn">
+          <i class="fas fa-plus mr-1"></i>
+          <span>创建作业</span>
+        </a>
+      </div>
+
+      <!-- 筛选器 -->
+      <div class="bg-white rounded-xl shadow-sm p-4 mb-6">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-bold">筛选条件</h3>
+          <button class="text-blue-600 text-sm">
+            <i class="fas fa-redo-alt mr-1"></i>
+            <span>重置</span>
+          </button>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <div>
+            <label class="block text-sm text-gray-600 mb-1">班级</label>
+            <select class="w-full border border-gray-300 rounded-lg py-2 px-3 text-sm">
+              <option value="all">全部班级</option>
+              <option value="class1">三年级一班</option>
+              <option value="class2" selected>三年级二班</option>
+              <option value="class3">三年级三班</option>
+            </select>
+          </div>
+          
+          <div>
+            <label class="block text-sm text-gray-600 mb-1">科目</label>
+            <select class="w-full border border-gray-300 rounded-lg py-2 px-3 text-sm">
+              <option value="all">全部科目</option>
+              <option value="math">数学</option>
+              <option value="chinese">语文</option>
+              <option value="english">英语</option>
+              <option value="science">科学</option>
+            </select>
+          </div>
+          
+          <div>
+            <label class="block text-sm text-gray-600 mb-1">状态</label>
+            <select class="w-full border border-gray-300 rounded-lg py-2 px-3 text-sm">
+              <option value="all">全部状态</option>
+              <option value="active">进行中</option>
+              <option value="expired">已截止</option>
+              <option value="draft">草稿</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="flex items-center justify-between filter-container">
+          <div class="flex overflow-x-auto py-2 space-x-2 filter-pills-container">
+            <span class="filter-pill py-1 px-3 bg-blue-100 text-blue-600 rounded-full text-sm">
+              三年级二班
+              <i class="fas fa-times ml-1 cursor-pointer"></i>
+            </span>
+            <span class="filter-pill py-1 px-3 bg-blue-100 text-blue-600 rounded-full text-sm">
+              进行中
+              <i class="fas fa-times ml-1 cursor-pointer"></i>
+            </span>
+          </div>
+          
+          <button class="bg-blue-600 text-white py-2 px-4 rounded-lg text-sm filter-action-btn">
+            应用筛选
+          </button>
+        </div>
+      </div>
+
+      <!-- 作业列表 -->
+      <div class="space-y-4 mb-6">
+        <!-- 进行中的作业 -->
+        <div class="assignment-item p-4">
+          <div class="flex justify-between items-start mb-3">
+            <div class="flex items-start assignment-title-area">
+              <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center mr-3 assignment-subject-icon">
+                <i class="fas fa-calculator text-blue-500"></i>
+              </div>
+              <div>
+                <div class="font-bold">数学 - 分数加减法练习（一）</div>
+                <div class="text-xs text-gray-500 mt-1">布置时间: 2023年4月24日 &nbsp;|&nbsp; 截止时间: 2023年4月28日 17:00</div>
+              </div>
+            </div>
+            <span class="status-badge status-active">进行中</span>
+          </div>
+          <div class="flex justify-between items-center assignment-meta">
+            <div class="flex items-center text-sm text-gray-500 flex-wrap assignment-stats">
+              <span>三年级二班</span>
+              <span class="mx-2">|</span>
+              <i class="fas fa-users mr-1"></i>
+              <span>42名学生</span>
+              <span class="mx-2">|</span>
+              <span class="text-green-500">35已交</span>
+              <span class="mx-1">|</span>
+              <span class="text-blue-500">19已批</span>
+            </div>
+            <div class="flex space-x-2 assignment-actions">
+              <button class="py-1 px-3 bg-gray-100 text-gray-600 text-sm rounded-lg">
+                查看详情
+              </button>
+              <button class="py-1 px-3 bg-blue-600 text-white text-sm rounded-lg">
+                批改
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="assignment-item p-4">
+          <div class="flex justify-between items-start mb-3">
+            <div class="flex items-start assignment-title-area">
+              <div class="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center mr-3 assignment-subject-icon">
+                <i class="fas fa-book text-red-500"></i>
+              </div>
+              <div>
+                <div class="font-bold">语文 - 近义词练习</div>
+                <div class="text-xs text-gray-500 mt-1">布置时间: 2023年4月23日 &nbsp;|&nbsp; 截止时间: 2023年4月26日 17:00</div>
+              </div>
+            </div>
+            <span class="status-badge status-active">进行中</span>
+          </div>
+          <div class="flex justify-between items-center assignment-meta">
+            <div class="flex items-center text-sm text-gray-500 flex-wrap assignment-stats">
+              <span>三年级二班</span>
+              <span class="mx-2">|</span>
+              <i class="fas fa-users mr-1"></i>
+              <span>42名学生</span>
+              <span class="mx-2">|</span>
+              <span class="text-green-500">38已交</span>
+              <span class="mx-1">|</span>
+              <span class="text-blue-500">32已批</span>
+            </div>
+            <div class="flex space-x-2 assignment-actions">
+              <button class="py-1 px-3 bg-gray-100 text-gray-600 text-sm rounded-lg">
+                查看详情
+              </button>
+              <button class="py-1 px-3 bg-blue-600 text-white text-sm rounded-lg">
+                批改
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 已截止的作业 -->
+        <div class="assignment-item p-4">
+          <div class="flex justify-between items-start mb-3">
+            <div class="flex items-start assignment-title-area">
+              <div class="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center mr-3 assignment-subject-icon">
+                <i class="fas fa-language text-green-500"></i>
+              </div>
+              <div>
+                <div class="font-bold">英语 - 动物单词</div>
+                <div class="text-xs text-gray-500 mt-1">布置时间: 2023年4月18日 &nbsp;|&nbsp; 截止时间: 2023年4月22日 17:00</div>
+              </div>
+            </div>
+            <span class="status-badge status-expired">已截止</span>
+          </div>
+          <div class="flex justify-between items-center assignment-meta">
+            <div class="flex items-center text-sm text-gray-500 flex-wrap assignment-stats">
+              <span>三年级二班</span>
+              <span class="mx-2">|</span>
+              <i class="fas fa-users mr-1"></i>
+              <span>42名学生</span>
+              <span class="mx-2">|</span>
+              <span class="text-green-500">40已交</span>
+              <span class="mx-1">|</span>
+              <span class="text-blue-500">40已批</span>
+            </div>
+            <div class="flex space-x-2 assignment-actions">
+              <button class="py-1 px-3 bg-gray-100 text-gray-600 text-sm rounded-lg">
+                查看详情
+              </button>
+              <button class="py-1 px-3 bg-gray-100 text-gray-600 text-sm rounded-lg">
+                查看统计
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="assignment-item p-4">
+          <div class="flex justify-between items-start mb-3">
+            <div class="flex items-start assignment-title-area">
+              <div class="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center mr-3 assignment-subject-icon">
+                <i class="fas fa-flask text-purple-500"></i>
+              </div>
+              <div>
+                <div class="font-bold">科学 - 植物的生长</div>
+                <div class="text-xs text-gray-500 mt-1">布置时间: 2023年4月15日 &nbsp;|&nbsp; 截止时间: 2023年4月20日 17:00</div>
+              </div>
+            </div>
+            <span class="status-badge status-expired">已截止</span>
+          </div>
+          <div class="flex justify-between items-center assignment-meta">
+            <div class="flex items-center text-sm text-gray-500 flex-wrap assignment-stats">
+              <span>三年级二班</span>
+              <span class="mx-2">|</span>
+              <i class="fas fa-users mr-1"></i>
+              <span>42名学生</span>
+              <span class="mx-2">|</span>
+              <span class="text-green-500">38已交</span>
+              <span class="mx-1">|</span>
+              <span class="text-blue-500">38已批</span>
+            </div>
+            <div class="flex space-x-2 assignment-actions">
+              <button class="py-1 px-3 bg-gray-100 text-gray-600 text-sm rounded-lg">
+                查看详情
+              </button>
+              <button class="py-1 px-3 bg-gray-100 text-gray-600 text-sm rounded-lg">
+                查看统计
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 草稿作业 -->
+        <div class="assignment-item p-4">
+          <div class="flex justify-between items-start mb-3">
+            <div class="flex items-start assignment-title-area">
+              <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center mr-3 assignment-subject-icon">
+                <i class="fas fa-calculator text-blue-500"></i>
+              </div>
+              <div>
+                <div class="font-bold">数学 - 几何图形认识（草稿）</div>
+                <div class="text-xs text-gray-500 mt-1">创建时间: 2023年4月22日 &nbsp;|&nbsp; 未设置截止时间</div>
+              </div>
+            </div>
+            <span class="status-badge status-draft">草稿</span>
+          </div>
+          <div class="flex justify-between items-center assignment-meta">
+            <div class="flex items-center text-sm text-gray-500 flex-wrap assignment-stats">
+              <span>三年级二班</span>
+              <span class="mx-2">|</span>
+              <i class="fas fa-users mr-1"></i>
+              <span>未发布</span>
+            </div>
+            <div class="flex space-x-2 assignment-actions">
+              <button class="py-1 px-3 bg-gray-100 text-gray-600 text-sm rounded-lg">
+                编辑草稿
+              </button>
+              <button class="py-1 px-3 bg-blue-600 text-white text-sm rounded-lg">
+                发布
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 分页 -->
+      <div class="flex justify-center items-center mt-8 pagination-container">
+        <button class="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-300 mr-2 text-gray-500">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+        <button class="w-10 h-10 flex items-center justify-center rounded-lg bg-blue-600 text-white mr-2">1</button>
+        <button class="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-300 mr-2 text-gray-700">2</button>
+        <button class="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-300 mr-2 text-gray-700">3</button>
+        <button class="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-300 text-gray-500">
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+    
+    <!-- 底部导航栏 -->
+    <div id="nav-container"></div>
+  </div>
+</body>
+</html> 
